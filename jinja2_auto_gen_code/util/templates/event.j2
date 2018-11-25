@@ -1,0 +1,12 @@
+{% from "event_macros.j2" import class %}
+
+{{
+    class(
+        name=evt_class.id,
+        parent=parent_args,
+        init_args=evt_vars,
+        msg=msg
+    )
+}}
+
+

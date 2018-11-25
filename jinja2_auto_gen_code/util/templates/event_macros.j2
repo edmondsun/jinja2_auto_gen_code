@@ -1,0 +1,80 @@
+{% macro dict_to_attributes(dictionary) %}
+    {% set acc = [] %}
+	{% for name,value in dictionary.iteritems() %}
+		{% if value %}
+			{% set s = '%s=%s' | format(name,value|string) %}
+		{% else %}
+			{% set s = name %}
+		{% endif %}
+		  {% do acc.append(s) %}
+	{% endfor -%}
+	{{ acc | join(',') }}
+{%- endmacro %}
+
+{% macro
+    class(
+            name,
+            parent='object',
+            initialize=True,
+            init_args={},
+            parent_args={},
+            init_body='',
+            msg=''
+    )
+%}
+
+class {{ name }}({{ parent }}):
+	"""Class docs
+	"""
+    {{ super_call }}
+
+	{% if parent == 'object' %}
+	   {{ constructor(init_args, body=init_body, msg=msg) }}
+	{% else %}
+	   {% set attr_string = dict_to_attributes(parent_args) -%}
+	   {% set super_call = 'super(%s,self).__init__(%s)'|format(name, attr_string) %}
+	   {# remove parent_args from init_args #}
+	   {{ constructor(init_args, super_call, initialize, body=init_body, msg=msg) }}
+	{% endif %}
+{% endmacro %}
+
+{% macro
+    constructor(
+        args,
+        super_call='',
+        initialize=True,
+        body='',
+        msg=''
+    )
+%}
+    {% set acc = ['self'] %}
+    {% for name, value in args.iteritems() %}
+        {% if value %}
+            {% set s = '%s=%s'|format(name,value|string) %}
+        {% else %}
+            {% set s = name %}
+        {% endif %}
+        {% do acc.append(s) %}
+    {% endfor %}
+def __init__({{ acc | join(',') }}):
+        """init docs
+        """
+    {% if acc|length == 1 and not super_call %}
+        pass
+    {% endif %}
+    {% if super_call %}
+        {{ super_call }}
+    {% endif %}
+    {% if initialize -%}
+        {% set msg_format = [] %}
+        {%- for key in args.keys() %}
+            self.{{ key }} = {{ key }}
+            {% set s = '%s=self.%s'|format(key, key) %}
+            {% do msg_format.append(s) %}
+        {% endfor %}
+        {% if msg %}
+            self.msg = "{{ msg|string }}".format({{ msg_format | join(',') }})
+        {% endif %}
+    {% endif %}
+    {{ body }}
+{% endmacro %}

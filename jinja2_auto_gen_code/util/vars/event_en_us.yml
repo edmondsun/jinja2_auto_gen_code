@@ -1,0 +1,15 @@
+- id: LoginSuccess
+  remote: ip 
+  log: information
+  user: user
+  msg: "User [user] logged in from [remote]."
+- id: LogoutSuccess
+  remote: ip
+  log: information
+  user: user
+  msg: "User [user] logged out from [remote]."
+- id: LoginFail
+  remote: ip
+  log: warning
+  user: system
+  msg: "User [user] from [remote] failed to log in."
